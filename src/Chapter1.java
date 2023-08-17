@@ -11,7 +11,6 @@ public class Chapter1 {
     public class Invitation{
         private LocalDateTime when;
     }
-
     public class Ticket{
         private Long fee;
 
@@ -19,7 +18,6 @@ public class Chapter1 {
             return this.fee;
         }
     }
-
     public class Bag{
         private Long amount;
         private Invitation invitation;
@@ -32,17 +30,29 @@ public class Chapter1 {
             this.invitation = invitation;
             this.amount = amount;
         }
-        public boolean hasInvitation(){
+        private boolean hasInvitation(){
             return invitation != null;
         }
-        public void setTicket(Ticket ticket){
+        private void setTicket(Ticket ticket){
             this.ticket = ticket;
         }
-        public void minusAmount(Long amount){
+        private void minusAmount(Long amount){
             this.amount -= amount;
         }
         public void plusAmount(Long amount){
             this.amount += amount;
+        }
+
+        public Long hold(Ticket ticket){
+            if(hasInvitation()){
+                setTicket(ticket);
+                return 0L;
+            }
+            else{
+                setTicket(ticket);
+                minusAmount(ticket.getFee());
+                return ticket.getFee();
+            }
         }
     }
     public class Audience{
@@ -54,6 +64,9 @@ public class Chapter1 {
         public Bag getBag() {
             return bag;
         }
+        public Long buy(Ticket ticket){
+            return bag.hold(ticket);
+        }
     }
     public class TicketOffice{
         private Long amount;
@@ -64,15 +77,23 @@ public class Chapter1 {
             this.tickets.addAll(Arrays.asList(tickets));
         }
 
-        public Ticket getTicket(){
+        private Ticket getTicket(){
+
             return tickets.remove(0);
         }
         public void minusAmount(Long amount){
+
             this.amount -= amount;
         }
-        public void plusAmount(Long amount){
+        private void plusAmount(Long amount){
+
             this.amount += amount;
         }
+        public void sellTicketTo(Audience audience){
+            plusAmount(audience.buy(getTicket()));
+            // TicketOffice의 자율성을 높이기 위해 즉, 응집도를 높이기 위해 코드를 수정하니 기존에는 없던 TicketOffice와 Audience사이에 의존성이 생김
+        }
+
     }
     public class TicketSeller{
         private TicketOffice ticketOffice;
@@ -80,8 +101,10 @@ public class Chapter1 {
         public TicketSeller(TicketOffice ticketOffice){
             this.ticketOffice = ticketOffice;
         }
-        public TicketOffice getTicketOffice(){
-            return this.ticketOffice;
+        public void sellTo(Audience audience){
+            ticketOffice.sellTicketTo(audience);
+            // bag에 접근하는 것을 TicketSeller가 아니라 Audience가 수행함으로써 의존성을 낮춤(캡슐화)
+            // 그 뒤에 TicketOffice의 필드에 TicketSeller가 접근하던 것을 TicketOffice가 내부에서 책임지게 함(캡슐화 - 응집도 up)
         }
     }
     public class Theater{
@@ -91,16 +114,8 @@ public class Chapter1 {
         }
 
         public void enter(Audience audience){
-            if(audience.getBag().hasInvitation()){
-                Ticket ticket = ticketSeller.getTicketOffice().getTicket();
-                audience.getBag().setTicket(ticket);
-            }
-            else{
-                Ticket ticket = ticketSeller.getTicketOffice().getTicket();
-                audience.getBag().setTicket(ticket);
-                audience.getBag().minusAmount(ticket.getFee());
-                ticketSeller.getTicketOffice().plusAmount(ticket.getFee());
-            }
+            ticketSeller.sellTo(audience);
+            // TicketOffice에 접근하는 것을 TicketSeller가 수행함으로써 의존성을 낮춤(캡슐화)
         }
     }
 }
