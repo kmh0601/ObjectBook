@@ -91,7 +91,7 @@ public class Chapter1 {
         }
         public void sellTicketTo(Audience audience){
             plusAmount(audience.buy(getTicket()));
-            // TicketOffice의 자율성을 높이기 위해 즉, 응집도를 높이기 위해 코드를 수정하니 기존에는 없던 TicketOffice와 Audience사이에 의존성이 생김
+            // TicketOffices 자율성을 높이기 위해 즉, 응집도를 높이기 위해 코드를 수정하니 기존에는 없던 TicketOffice와 Audience사이에 의존성이 생김
         }
 
     }
