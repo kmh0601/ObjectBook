@@ -14,44 +14,11 @@ public class Chapter5_1 {
     public class ReservationAgency{
 
         public Reservation reserve(Screening screening, Customer customer, int audienceCount){
-            boolean discountable = checkDiscountable(screening);
+            boolean discountable = screening.checkDiscountable();
             Money fee = calculateFee(screening, discountable, audienceCount);
             return createReservation(screening, customer, audienceCount, fee);
         }
 
-        public boolean checkDiscountable(Screening screening){
-            return screening.getMovie().getDiscountConditions().stream()
-                    .anyMatch(condition -> condition.isDicountable(screening));
-        }
-
-        private Money calculateFee(Screening screening, boolean discountable, int audiencecount){
-            if(discountable){
-                return screening.getMovie().getFee()
-                        .minus(calculateDiscountedFee(screening.getMovie()))
-                        .times(audiencecount);
-            }
-            return screening.getMovie().getFee().times(audiencecount);
-        }
-        private Money calculateDiscountFee(Movie movie){
-            switch (movie.getMovieType()){
-                case AMOUNT_DISCOUNT:
-                    return calculateAmountDiscountFee(movie);
-                case PERCENT_DISCOUNT:
-                    return calculatePercentDiscountFee(movie);
-                case NONE_DISCOUNT:
-                    return calculateNoneDicountFee(movie);
-            }
-            throw new IllegalArgumentException();
-        }
-        private Money calculateAmountDiscountFee(Movie movie){
-            return movie.getDiscountAmount();
-        }
-        private Money calculatePercentDiscountFee(Movie movie){
-            return movie.getFee().times(movie.getDiscountPercent());
-        }
-        private Money calculateNoneDicountFee(Movie movie){
-            return Money.ZERO;
-        }
         private Reservation createReservation(Screening screening, Customer customer, int audienceCount, Money fee){
             return new Reservation(customer, screening, fee, audienceCount);
         }
@@ -95,6 +62,27 @@ public class Chapter5_1 {
         private MovieType movieType;
         private Money discountAmount;
         private double discountPercent;
+
+        public Money calculateDiscountFee(){
+            switch (getMovieType()){
+                case AMOUNT_DISCOUNT:
+                    return calculateAmountDiscountFee();
+                case PERCENT_DISCOUNT:
+                    return calculatePercentDiscountFee();
+                case NONE_DISCOUNT:
+                    return calculateNoneDicountFee();
+            }
+            throw new IllegalArgumentException();
+        }
+        private Money calculateAmountDiscountFee(){
+            return getDiscountAmount();
+        }
+        private Money calculatePercentDiscountFee(){
+            return getFee().times(getDiscountPercent());
+        }
+        private Money calculateNoneDicountFee( ){
+            return Money.ZERO;
+        }
 
         public MovieType getMovieType() {
             return movieType;
@@ -140,7 +128,7 @@ public class Chapter5_1 {
         private DayOfWeek dayOfWeek;
         private LocalTime startTime;
         private LocalTime endTime;
-        public boolean isDicountable(Screening screening){
+        public boolean isDiscountable(Screening screening){
             if(getType() == DiscountConditionType.PERIOD){
                 return isSatisfiedByPeriod(screening);
             }
@@ -198,6 +186,20 @@ public class Chapter5_1 {
         private Movie movie;
         private int sequence;
         private LocalDateTime whenScreened;
+
+        public boolean checkDiscountable(){
+            return getMovie().getDiscountConditions().stream()
+                    .anyMatch(condition -> condition.isDiscountable(this));
+        }
+
+        private Money calculateFee(Screening screening, boolean discountable, int audiencecount){
+            if(discountable){
+                return screening.getMovie().getFee()
+                        .minus(screening.getMovie().calculateDiscountFee())
+                        .times(audiencecount);
+            }
+            return screening.getMovie().getFee().times(audiencecount);
+        }
 
         public Movie getMovie(){
             return movie;
