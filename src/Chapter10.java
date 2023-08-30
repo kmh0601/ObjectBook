@@ -28,37 +28,27 @@ public class Chapter10 {
             return from;
         }
     }
-    public class Phone extends AbstractPhone{
+    public class RegularPhone extends Phone{
         private Money amount;
         private Duration seconds;
 
-        public Phone(Money amount, Duration seconds){
+        public RegularPhone(Money amount, Duration seconds, double taxRate){
+            super(taxRate);
             this.amount = amount;
             this.seconds = seconds;
-        }
-        public void call(Call call){
-            calls.add(call);
-        }
-        public List<Call> getCalls(){
-            return calls;
-        }
-        public Money getAmount(){
-            return amount;
-        }
-        public Duration getSeconds(){
-            return seconds;
         }
         @Override
         private Money calculateCallFee(Call call){
             return amount.times(call.getDuration().getSeconds() / seconds.getSeconds());
         }
     }
-    public class NightlyDiscountPhone extends AbstractPhone{
+    public class NightlyDiscountPhone extends Phone{
         private static final int LATE_NIGHT_HOUR = 22;
         private Money nightlyAmount;
         private Money regularAmount;
         private Duration seconds;
-        public NightlyDiscountPhone(Money nightlyAmount, Money regularAmount, Duration seconds){
+        public NightlyDiscountPhone(Money nightlyAmount, Money regularAmount, Duration seconds, double taxRate){
+            super(taxRate);
             this.nightlyAmount = nightlyAmount;
             this.regularAmount = regularAmount;
             this.seconds = seconds;
@@ -72,15 +62,20 @@ public class Chapter10 {
             return regularAmount.times(call.getDuration().getSeconds() / seconds.getSeconds());
         }
     }
-    public abstract class AbstractPhone{
+    public abstract class Phone{
         private List<Call> calls = new ArrayList<>();
+        private double taxRate;
+        public Phone(double taxRate){
+            this.taxRate = taxRate;
+        }
+
         public Money calculateFee(){
             Money result = Money.ZERO;
 
             for(Call call : calls){
                 result = result.plus(calculateCallFee(call));
             }
-            return result;
+            return result.plus(result.tiems(taxRate));
         }
         abstract protected Money calculateCallFee(Call call);
     }
