@@ -22,6 +22,12 @@ public class Chapter12 {
                     .mapToInt(Integer::intValue)
                     .average().orElse(0);
         }
+        public String stats(){
+            return String.format("Title: %s, Evaluation Method: %s", title, getEvaluationMethod());
+        }
+        public String getEvaluationMethod(){
+            return "Pass or Fail";
+        }
         public List<Integer> getScores(){
             return Collections.unmodifiableList(scores);
         }
@@ -49,7 +55,7 @@ public class Chapter12 {
         public boolean isName(String name){
             return this.name.equals(name);
         }
-        public boolean inClude(int score){
+        public boolean include(int score){
             return score >= lower && score <= upper;
         }
     }
@@ -63,6 +69,10 @@ public class Chapter12 {
             return grades.stream()
                     .map(grade -> format(grade))
                     .collect(joining(" "));
+        }
+        @Override
+        public String getEvaluationMethod(){
+            return "Grade";
         }
         private String format(Grade grade){
             return String.format("%s:%d", grade.getName(), gradeCount(grade));
